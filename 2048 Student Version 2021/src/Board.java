@@ -3,6 +3,7 @@ import java.util.Random;
 public class Board {
  
 	private int[][] board; // holds state of game
+	private int size;
 	private Random rnd = new Random(0); // setup random # generator
 	
 	//What instance variable can you add to keep track of the size or the number of tiles occupied?
@@ -14,6 +15,7 @@ public class Board {
 		
 		// instantiate the board
 		board = new int[4][4];
+		size = 0;
 		populateOne();
 		populateOne();
 	}
@@ -47,10 +49,14 @@ public class Board {
 		
 		//setup loops to visit
 		//every spot possible
-		
-		
-		
-		return "";
+		String builder = "";
+		for(int i = 0; i < board.length; i++) {
+			for(int j = 0; j < board[0].length; j++) {
+				builder += String.format("%04d", board[i][j])+" ";
+			}
+			builder += "\n";
+		}
+		return builder;
 	}
 
 	/*
@@ -70,11 +76,20 @@ public class Board {
 		// check if that tile is empty, if it is NOT empty,
 		// generate another set of row and column
 		// what happens if the entire board is full??! 
-		
-		
-		
-			
-
+		int val = 0;
+		while(val < 16) {
+			int r = rnd.nextInt(4);
+			int c = rnd.nextInt(4);
+			int x = rnd.nextInt(10);
+			if(board[r][c] == 0 && x == 10) {
+				board[r][c] = 4;
+				break;
+			}else if(board[r][c] == 0 && x != 10){
+				board[r][c] = 2;
+				break;
+			}
+			val ++;
+		}
 	}
 
 	/*
@@ -89,9 +104,14 @@ public class Board {
 	 */
 
 	public void slideRight(int[] row) {
-		
-
-	
+		for(int i = 0; i < row.length-1; i++) {
+			for(int j = 0; j < 3; j++) {
+				if(row[j] != 0 && row[j+1] == 0) {
+					row[j+1] = row[j];
+					row[j] = 0;
+				}
+			}
+		}
 	}
 
 	/*
@@ -109,7 +129,9 @@ public class Board {
 
 		// go through 2D array, move all digits as far right as possible
 		//setup a loop to grab ONE row at a time from 2d array board
-	
+		for(int i = 0; i < 4; i++) {
+			slideRight(board[i]);
+		}
 		
 	}
 
@@ -123,7 +145,14 @@ public class Board {
 	 */
 
 	public void slideLeft(int[] arr) {
-		
+		for(int i = arr.length-1; i >= 0; i--) {
+			for(int j = 1; j < 4; j++) {
+				if(arr[j] != 0 && arr[j-1] == 0) {
+					arr[j-1] = arr[j];
+					arr[j] = 0;
+				}
+			}
+		}
 		
 		
 	}
@@ -137,13 +166,12 @@ public class Board {
 	public void slideLeft() {
 		
 		// grabbing a row from a 2D array
-		// if it's called arr then arr[i] grabs ONE row!
-	
-		
-		
+		// if it's called arr then arr[i] grabs ONE row!	
 		//visit every single row in the 2D array
 		//call the slideLeft method that takes in one argument
-		
+		for(int i = 0; i < 4; i++) {
+			slideLeft(board[i]);
+		}
 		
 	}
 
@@ -154,7 +182,11 @@ public class Board {
 	public int[] getCol(int[][] data, int c) {
 		
 		//you can also add print out statements here
-		return new int[0];
+		int[] result = new int[data.length];
+		for(int i = 0; i < data.length; i++) {
+			result[i] = data[i][c];
+		}
+		return result;
 		
 	}
 
@@ -167,6 +199,7 @@ public class Board {
 	public void slideUp(int[] arr) {
 		/* calls a helper method */
 		// do not rewrite logic you already have!
+		slideLeft(arr);
 	}
 
 	/*
@@ -183,14 +216,20 @@ public class Board {
 		//have slideLeft perform manipulation on the array
 		// copy over the 1D array representation of the column
 		// back to the 2D board array
-
+		for(int i = 0; i < 4; i++) {
+			int[] temp = getCol(board, i);
+			slideUp(temp);
+			for(int j = 0; j < 4; j++) {
+				board[j][i] = temp[j];
+			}
+		}
 		
 		
 		
 	}
 
 	public void slideDown(int[] arr) {
-
+		slideRight(arr);
 		
 	}
 
@@ -201,7 +240,13 @@ public class Board {
 	 */
 
 	public void slideDown() {
-
+		for(int i = 0; i < 4; i++) {
+			int[] temp = getCol(board, i);
+			slideDown(temp);
+			for(int j = 0; j < 4; j++) {
+				board[j][i] = temp[j];
+			}
+		}
 	}
 
 	/*
@@ -215,8 +260,25 @@ public class Board {
 	 * 
 	 * Notice that the left element is zeroed out.
 	 */
+	
+	public void combineRight(int[] arr) {
+		boolean hasCombined = false;
+		for(int i = 1; i < 4; i++) {
+			if(!hasCombined && arr[i] == arr[i-1]) {
+				arr[i] *= 2;
+				arr[i-1] = 0;
+				hasCombined = true;
+			}else {
+				hasCombined = false;
+			}
+		}
 
+	}
+	
 	public void combineRight() {
+		for(int i = 0; i < 4; i++) {
+			combineRight(board[i]);
+		}
 
 	}
 
@@ -224,27 +286,60 @@ public class Board {
 	 * same behavior as combineRight but the right element is zeroed out when
 	 * two elements are combined
 	 */
-
+	public void combineLeft(int[] arr) {
+		boolean hasCombined = false;
+		for(int i = 2; i >= 0; i--) {
+			if(!hasCombined && arr[i] == arr[i+1]) {
+				arr[i] *= 2;
+				arr[i+1] = 0;
+				hasCombined = true;
+			}else {
+				hasCombined = false;
+			}
+			
+		}
+	}
+	
 	public void combineLeft() {
-		
+		for(int i = 0; i < 4; i++) {
+			combineLeft(board[i]);
+		}
 	}
 	
 	/*
 	 * same behavior as combineRight but the bottom element is zeroed out when
 	 * two elements are combined
-	 */
-
+	 */   
+	public void combineUp(int[] arr) {
+		combineLeft(arr);
+	}
+	
 	public void combineUp() {
-
+		for(int i = 0; i < 4; i++) {
+			int[] temp = getCol(board, i);
+			combineUp(temp);
+			for(int j = 0; j < 4; j++) {
+				board[j][i] = temp[j];
+			}
+		}
 	}
 
 	/*
 	 * same behavior as combineRight but the top element is zeroed out when two
 	 * elements are combined
 	 */
-
+	public void combineDown(int[] arr) {
+		combineRight(arr);
+	}
+	
 	public void combineDown() {
-
+		for(int i = 0; i < 4; i++) {
+			int[] temp = getCol(board, i);
+			combineDown(temp);
+			for(int j = 0; j < 4; j++) {
+				board[j][i] = temp[j];
+			}
+		}
 	}
 
 	
@@ -258,18 +353,28 @@ public class Board {
 		//1) numbers slide to the left
 		//2) combine
 		//3) slide
+		slideLeft();
+		combineLeft();
+		slideLeft();
 	}
 
 	public void right() {
+		slideRight();
+		combineRight();
+		slideRight();
 
 	}
 
 	public void up() {
-
+		slideUp();
+		combineUp();
+		slideUp();
 	}
 
 	public void down() {
-
+		slideDown();
+		combineDown();
+		slideDown();
 	}
 	
 	
